@@ -5,26 +5,257 @@ date: "2023-05-12"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+# Chapter 2: Small worlds and large worlds
+
+## In-text code
+Code is from Chapter 2 in the text book - but has additionally comments etc.
+Note: Object names are repeated in different chunks of code for ease.
+
+### Grid approximation
+
+```{r}
+# define grid
+p_grid <- seq(from = 0, to = 1, length.out = 20) # grid of 20 parameter values
+
+# define prior
+prior <- rep(1, 20) # means each parameter value is equally likely
+
+# compute likelihood at each value in grid
+
+likelihood <- dbinom(6, size = 9, prob = p_grid) # 6 Waters, 9 sample size, Each possilble of parameter values
+
+# compute product of likelihood and prior
+
+unstd.posterior <- likelihood * prior
+
+# standardized posterior
+posterior <- unstd.posterior / sum(unstd.posterior)
+
+plot(p_grid, posterior, type = "b", xlab = "probability of water")
+mtext("20 points")
+
+# Sparser grid ------------------------------
+
+# define grid
+p_grid <- seq(from = 0, to = 1, length.out = 5) # grid of 20 parameter values
+
+# define prior
+prior <- rep(1, 5) # means each parameter value is equally likely
+
+# compute likelihood at each value in grid
+
+likelihood <- dbinom(6, size = 9, prob = p_grid) # 6 Waters, 9 sample size, Each possilble of parameter values
+
+# compute product of likelihood and prior
+
+unstd.posterior <- likelihood * prior
+
+# standardized posterior
+posterior <- unstd.posterior / sum(unstd.posterior)
+
+plot(p_grid, posterior, type = "b", xlab = "probability of water")
+mtext("5 points")
+
+# Denser grid ------------------------------
+
+# define grid
+p_grid <- seq(from = 0, to = 1, length.out = 100) # grid of 20 parameter values
+
+# define prior
+prior <- rep(1, 5) # means each parameter value is equally likely
+
+# compute likelihood at each value in grid
+
+likelihood <- dbinom(6, size = 9, prob = p_grid) # 6 Waters, 9 sample size, Each possilble of parameter values
+
+# compute product of likelihood and prior
+
+unstd.posterior <- likelihood * prior
+
+# standardized posterior
+posterior <- unstd.posterior / sum(unstd.posterior)
+
+plot(p_grid, posterior, type = "b", xlab = "probability of water")
+mtext("100 points")
+
+# Changing priors ------------------------------
+
+# define grid
+p_grid <- seq(from = 0, to = 1, length.out = 20) # grid of 20 parameter values
+
+# define prior
+prior <- ifelse(p_grid < 0.5, 0, 1)
+
+# compute likelihood at each value in grid
+
+likelihood <- dbinom(6, size = 9, prob = p_grid) # 6 Waters, 9 sample size, Each possilble of parameter values
+
+# compute product of likelihood and prior
+
+unstd.posterior <- likelihood * prior
+
+# standardized posterior
+posterior <- unstd.posterior / sum(unstd.posterior)
+
+plot(p_grid, posterior, type = "b", xlab = "probability of water")
+mtext("20 points different parameter values less the 0.5 not possible")
+
+# Changing priors ------------------------------
+
+# define grid
+p_grid <- seq(from = 0, to = 1, length.out = 20) # grid of 20 parameter values
+
+# define prior
+prior <- exp(-5 * abs(p_grid - 0.5))
+
+# compute likelihood at each value in grid
+
+likelihood <- dbinom(6, size = 9, prob = p_grid) # 6 Waters, 9 sample size, Each possilble of parameter values
+
+# compute product of likelihood and prior
+
+unstd.posterior <- likelihood * prior
+
+# standardized posterior
+posterior <- unstd.posterior / sum(unstd.posterior)
+
+plot(p_grid, posterior, type = "b", xlab = "probability of water")
+mtext("20 points parmeter values around 0.5 more likely that at tails")
+
 ```
 
-## R Markdown
+### Quadratic approximation
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+```{r}
+library(rethinking)
+globe.qa <- quap(
+  alist(
+    W ~ dbinom(W + L, p), # binomial likelihood (Water follows a binomial distribution of N = W + L with probability p)
+    p ~ dunif(0, 1) # uniform prior (all parameter values are equally likely )
+  ) 
+  ,
+  data = list(W = 6, L = 3) # sample data where there was 6 Waters and 3 Lands
+)
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+# display summary of quadratic approximation
+precis(globe.qa)
 
-```{r cars}
-summary(cars)
+# analytically calculation
+W <- 6
+L <- 3
+curve(dbeta(x, W + 1, L + 1), from = 0, to = 1)
+
+# results from the quadratic approximation
+curve(dnorm(x, 0.67, 0.16), lty = 2, add = TRUE)
+
+```
+### Markov Chain Monte Carlo
+
+```{r}
+n_samples <- 1000
+p <- rep(NA, n_samples)
+p[1] <- 0.5
+W <- 6
+L <- 3
+
+for (i in 2:n_samples) {
+  p_new <- rnorm(1, p[i - 1], 0.1)
+  if (p_new < 0) p_new <- abs(p_new)
+  if (p_new > 1) p_new <- (2 - p_new)
+  q0 <- dbinom(W, W + L, p[i - 1])
+  q1 <- dbinom(W, W + L, p_new)
+  p[i] <- ifelse(runif(1) < q1 / q0, p_new, p[i - 1])
+}
+
+dens(p, xlim = c(0, 1))
+curve(dbeta(x, W + 1, L + 1), lty = 2, add = TRUE)
 ```
 
-## Including Plots
+## Practice questions
 
-You can also embed plots, for example:
+2E1. (2) Pr(rain|Monday) and (4) Pr(rain, Monday)/Pr(Monday)
+(4) because the joint probability, Pr(rain, Monday) = Pr(rain|Monday)*Pr(Monday) so if we solve for Pr(rain|Monday) we get Pr(rain, Monday)/Pr(Monday)
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+2E2. (2) The probability of Monday given its raining. 
+
+2E3. (1) Pr(Monday|rain) and (4) Pr(rain|Monday)Pr(Monday)/Pr(rain)
+
+2E4. The probability of the earth being covered in 70% water is more likely than all other percentages.
+
+2M1.
+```{r}
+#(1) W, W, W
+p_grid_1 <- seq(0, 1, length.out = 20)
+prior_1 <- rep(1, 20)
+
+likelihood_1 <- dbinom(3, size = 3, prob = p_grid_1)
+unstd.posterior_1 <- likelihood_1*prior_1
+posterior_1 <- unstd.posterior_1/sum(unstd.posterior_1)
+
+plot(p_grid_1, posterior_1, type = "b", xlab = "probability of water")
+mtext("W, W, W")
+
+#(2) W, W, W, L
+p_grid_2 <- seq(0, 1, length.out = 20)
+prior_2 <- rep(1, 20)
+
+likelihood_2 <- dbinom(3, size = 4, prob = p_grid_2)
+unstd.posterior_2 <- likelihood_2*prior_2
+posterior_2 <- unstd.posterior_2/sum(unstd.posterior_2)
+
+plot(p_grid_2, posterior_2, type = "b", xlab = "probability of water")
+mtext("W, W, W, L")
+
+#(3) L, W, W, L, W, W, W
+p_grid_3 <- seq(0, 1, length.out = 20)
+prior_3 <- rep(1, 20)
+
+likelihood_3 <- dbinom(5, size = 7, prob = p_grid_3)
+unstd.posterior_3 <- likelihood_3*prior_3
+posterior_3 <- unstd.posterior_3/sum(unstd.posterior_3)
+
+plot(p_grid_3, posterior_3, type = "b", xlab = "probability of water")
+mtext("L, W, W, L, W, W, W")
 ```
+2M2.
+```{r}
+#(1) W, W, W
+p_grid_4 <- seq(0, 1, length.out = 20)
+prior_4 <- ifelse(p_grid_4 < 0.5, 0, 1)
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+likelihood_4 <- dbinom(3, size = 3, prob = p_grid_4)
+unstd.posterior_4 <- likelihood_4*prior_4
+posterior_4 <- unstd.posterior_4/sum(unstd.posterior_4)
+
+plot(p_grid_4, posterior_4, type = "b", xlab = "probability of water")
+mtext("W, W, W")
+
+#(2) W, W, W, L
+p_grid_5 <- seq(0, 1, length.out = 20)
+prior_5 <- ifelse(p_grid_5 < 0.5, 0, 1)
+
+likelihood_5 <- dbinom(3, size = 4, prob = p_grid_5)
+unstd.posterior_5 <- likelihood_5*prior_5
+posterior_5 <- unstd.posterior_5/sum(unstd.posterior_5)
+
+plot(p_grid_5, posterior_5, type = "b", xlab = "probability of water")
+mtext("W, W, W, L")
+
+#(3) L, W, W, L, W, W, W
+p_grid_6 <- seq(0, 1, length.out = 20)
+prior_6 <- ifelse(p_grid_6 < 0.5, 0, 1)
+
+likelihood_6 <- dbinom(5, size = 7, prob = p_grid_6)
+unstd.posterior_6 <- likelihood_6*prior_6
+posterior_6 <- unstd.posterior_6/sum(unstd.posterior_6)
+
+plot(p_grid_6, posterior_6, type = "b", xlab = "probability of water")
+mtext("L, W, W, L, W, W, W")
+```
+2M3. How I thought of it suppose earth and mars are made up of 10 marbles each. Earth has 3 white and 7 blue, Mars has 10 white.
+If we draw Mars there are 10 ways to get white, if we draw Earth there are 3 ways to get 3. 
+Since Mars and Earth are equally likely to pick each marble is equally likely to pick and there are 13 was to get white in a bag full of that composition (20 marbles 13 white, 7 blue). 3/13 is 0.23
+OR there is a 30% chance of drawing land if you draw Earth, and there is a 50% chance of drawing Earth, in total the probability of drawing Land is the probability of getting earth and drawing a land probability of drawing mars and getting a land. 
+Pr(Earth|land) =  Pr(land|Earth)Pr(Earth)/Pr(Land)
+                    =  (0.3*0.5)/(0.3*0.5 + 1*0.5)
+                    = 0.23
