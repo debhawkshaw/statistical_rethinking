@@ -5,26 +5,73 @@ date: "2023-05-17"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+# Chapter 3: Sampling the Imaginary
+
+## In-text code
+Code is from Chapter 3 in the text book - but has additionally comments etc.
+Note: I do not write up the code of all the intext code examples.
+### Vampire test
+This is similar to the intext code but have done things a little differently 
+```{r}
+Pr_postive_vampire <- 0.95 # probability test is positive and person is a vampire
+Pr_postive_nonvampire <- 0.01 # probability test is positive and person is not a vampire
+Pr_vampire <- 0.001 # probability person is vampire
+Pr_nonvampire <- 1 - Pr_vampire
+Pr_vampire_postive <- (Pr_postive_vampire * Pr_vampire) / ((Pr_postive_vampire * Pr_vampire) + (Pr_postive_nonvampire * Pr_nonvampire))
+Pr_vampire_postive
 ```
 
-## R Markdown
+### Sampling from a grid approximate prosterior
+```{r}
+p_grid <- seq(from = 0, to = 1, length.out = 1000)
+prob_p <- rep(1, 1000)
+prob_data <- dbinom(6, size = 9, prob = p_grid)
+posterior <- prob_data * prob_p
+posterior <- posterior / sum(posterior)
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+samples <- sample(p_grid, prob = posterior, size = 1e4, replace = TRUE)
+plot(samples)
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+library(rethinking)
+dens(samples)
 ```
 
-## Including Plots
+### Sampling to summarize 
+```{r}
+# what is the posterior probability that the proportion of water is less that 0.5?
+# this is using the calculated grid approximated posterior
+sum(posterior[p_grid < 0.5])
 
-You can also embed plots, for example:
+# this is using samples from the posterior
+sum(samples < 0.5) / 1e4
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+# what is the posterior probability that the proportion of water is between 0.5 and 0.75?
+sum(samples > 0.5 & samples < 0.75) / 1e4
+
+# what are the bounds of the lower 80% posterior probability?
+quantile(samples, 0.8) # 80% of the posterior distribution falls between 0 and 0.76
+
+# what are the parameter values that bound the middle 80% posterior probability (i.e. centers on the parameter values with the highest frequency)
+quantile(samples, c(0.1, 0.9)) # the parameter value that bounds the lower 10% and the lower 90% of the posterior distribution (between these two values lies the middle 80%)
+
+
+# comparing PI to HDPI 
+p_grid <- seq(from = 0, to = 1, length.out = 1000)
+prob_p <- rep(1, 1000)
+prob_data <- dbinom(6, size = 9, prob = p_grid)
+posterior <- prob_data * prob_p
+posterior <- posterior / sum(posterior)
+
+samples <- sample(p_grid, prob = posterior, size = 1e4, replace = TRUE)
+
+# 80% probability mass 
+PI(samples, prob = 0.8)
+HPDI(samples, prob = 0.8)
+
+# 95% probability mass
+PI(samples, prob = 0.95)
+HPDI(samples, prob = 0.95)
+
+chainmode(samples)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
