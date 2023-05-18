@@ -67,11 +67,74 @@ samples <- sample(p_grid, prob = posterior, size = 1e4, replace = TRUE)
 # 80% probability mass 
 PI(samples, prob = 0.8)
 HPDI(samples, prob = 0.8)
-
 # 95% probability mass
 PI(samples, prob = 0.95)
 HPDI(samples, prob = 0.95)
 
-chainmode(samples)
+# Point estimates
+# MAP ~ Maximum a posteriori estimate
+p_grid[which.max(posterior)]
+chainmode(samples) # MAP generated from samples
+mean(samples) # mean generated from samples
+median(samples) # median generated from samples
+```
+
+### Loss functions 
+
+```{r}
+# Loss proportional to distance of estimate from true estimate
+sum(posterior * abs(0.5 - p_grid)) # for point estimate 0.5
+loss <- sapply(p_grid, function(d) sum(posterior * abs(d - p_grid))) # calculate loss for all possible point estimates
+p_grid[which.min(loss)] # estimate that minimizes the loss function, is the same as the median
+```
+
+### Sampling to simulate prediction 
+
+```{r}
+dbinom(0:2, size = 2, prob = 0.7) # generates probability of observing 0, 1, and 2 Waters when your sample size is 2 and the probability of water is 70%
+rbinom(1, size = 2, prob = 0.7) # generate one simulation of tossing the globe twice, with a probability of water of 70%. 
+rbinom(10, size = 2, prob = 0.7) # generate 10 simulations of tossing the globe twice with a probability of water of 70%
+
+dummy_w <- rbinom(1e5, size = 2, prob = 0.7) # generate 100000 simulations of tossing a globe twice with a probability of of water of 70%
+table(dummy_w)/1e5 # turns each simulation into a count of the number of times 0, 1, and 2 Waters were observed and divides that by the sample size.
+
+# showing if run again, the proabibilty of each observation changes slightly 
+dummy_w <- rbinom(1e5, size = 2, prob = 0.7) # generate 100000 simulations of tossing a globe twice with a probability of of water of 70%
+table(dummy_w)/1e5 # turns each simulation into a count of the number of times 0, 1, and 2 Waters were observed and divides that by the sample size.
+
+dummy_w <- rbinom(1e5, size = 9, prob = 0.7) # changing number of tosses in each simulation to 9 
+hist(dummy_w, xlab = "dummy water count")
+
+# changing sample size 
+dummy_w <- rbinom(1e5, size = 15, prob = 0.7) # changing number of tosses in each simulation to 15 
+hist(dummy_w, xlab = "dummy water count")
+
+dummy_w <- rbinom(1e5, size = 100, prob = 0.7) # changing number of tosses in each simulation to 100 
+hist(dummy_w, xlab = "dummy water count")
+
+# changing probability of obeserving water 
+dummy_w <- rbinom(1e5, size = 9, prob = 0.6) # changing prob of water to 0.6
+hist(dummy_w, xlab = "dummy water count")
+
+dummy_w <- rbinom(1e5, size = 9, prob = 0.4) # changing prob of water to 0.6
+hist(dummy_w, xlab = "dummy water count")
+
+```
+### Model checking
+```{r}
+# posterior predictive distributions 
+w <- rbinom(1e4, size = 9, prob = 0.6) # generate 10000 simulations of 9 globe tosses with a probability of water of 0.6
+simplehist(w)
+# to propagate the uncertainty in each value of p, replace p with the samples of p generated from the posterior distribution 
+p_grid <- seq(from = 0, to = 1, length.out = 1000)
+prob_p <- rep(1, 1000)
+prob_data <- dbinom(6, size = 9, prob = p_grid)
+posterior <- prob_data * prob_p
+posterior <- posterior / sum(posterior)
+
+samples <- sample(p_grid, prob = posterior, size = 1e4, replace = TRUE)
+
+w <- rbinom(1e4, size = 9, prob = samples) # generate 10000 simulations of 9 globe tosses with a probability of water of 0.6
+simplehist(w)
 ```
 
