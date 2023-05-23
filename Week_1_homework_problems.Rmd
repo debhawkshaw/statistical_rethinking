@@ -1,0 +1,48 @@
+---
+title: "Week1_homework_problems"
+author: "Deborah Hawkshaw"
+date: "2023-05-19"
+output: html_document
+---
+
+Solutions to the Week 1 Homework problems from Richard McElreath's 2023 Course (available on his github repo)
+
+1. Suppose the globe tossing data had turned out to be 4 water and 11 land. Construct the posterior distribution. 
+```{r}
+p_grid <- seq(from = 0, to = 1, length.out = 20)
+prior <- rep(1, 20)
+
+prob_data <- dbinom(4, size = 15, prob = p_grid)
+unstd.posterior <- prob_data * prior 
+posterior <- unstd.posterior/sum(unstd.posterior)
+
+plot(p_grid, posterior, type = "b", xlab = "probability of water")
+mtext("20 points")
+```
+2. Using the posterior distribution from 1., compute the posterior predictive distribution for the next 5 tosses of the same globe. I recommend you use the sampling method. 
+```{r}
+library(rethinking)
+samples <- sample(p_grid, prob = posterior, size = 1e4, replace = TRUE)
+posterior_predictive_dist <- rbinom(1e4, size = 5, prob = samples)
+
+plot(table(posterior_predictive_dist))
+table(posterior_predictive_dist) / 1e4
+simplehist(posterior_predictive_dist, xlab = "# of water counts")
+```
+
+3. Use the posterior predictive distribution from 2. to calculate the probability of 3 or more water samples in the next 5 tosses.
+```{r}
+sum(posterior_predictive_dist >= 3) / 1e4
+
+```
+
+4. Optional: This problem is an optional challenge for people who are taking the course fir a second or third time. Suppose you observe W = 5 water points, but you forgot to write down how many time the globe was tossed, so you don't know the number of land points L. Assume that p = 0.7 and compute the posterior distribution of the number of tosses N. Hint: Use the binomial distribution.
+```{r}
+prob_data <- dbinom(5, size = 5:100, prob = 0.7)
+unstd.posterior <- prob_data * 0.7
+posterior <- unstd.posterior/sum(unstd.posterior)
+
+```
+
+
+
