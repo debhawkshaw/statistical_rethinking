@@ -176,7 +176,7 @@ curve(dbeta(x, W + 1, L + 1), lty = 2, add = TRUE)
 2E1. (2) Pr(rain|Monday) and (4) Pr(rain, Monday)/Pr(Monday)
 (4) because the joint probability, Pr(rain, Monday) = Pr(rain|Monday)*Pr(Monday) so if we solve for Pr(rain|Monday) we get Pr(rain, Monday)/Pr(Monday)
 
-2E2. (2) The probability of Monday given its raining. 
+2E2. (3) The probability of Monday given its raining. 
 
 2E3. (1) Pr(Monday|rain) and (4) Pr(rain|Monday)Pr(Monday)/Pr(rain)
 
