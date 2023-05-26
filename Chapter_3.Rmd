@@ -9,7 +9,9 @@ output: html_document
 
 ## In-text code
 
-Code is from Chapter 3 in the text book - but has additionally comments etc. Note: I do not write up the code of all the intext code examples. \### Vampire test This is similar to the intext code but have done things a little differently
+Code is from Chapter 3 in the text book - but has additionally comments etc. Note: I do not write up the code of all the in-text code examples.
+
+### Vampire test This is similar to the intext code but have done things a little differently
 
 ```{r}
 Pr_postive_vampire <- 0.95 # probability test is positive and person is a vampire
