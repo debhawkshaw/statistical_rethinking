@@ -11,7 +11,9 @@ output: html_document
 
 Code is from Chapter 3 in the text book - but has additionally comments etc. Note: I do not write up the code of all the in-text code examples.
 
-### Vampire test This is similar to the intext code but have done things a little differently
+### Vampire test
+
+This is similar to the in-text code but have done things a little differently
 
 ```{r}
 Pr_postive_vampire <- 0.95 # probability test is positive and person is a vampire
@@ -22,7 +24,7 @@ Pr_vampire_postive <- (Pr_postive_vampire * Pr_vampire) / ((Pr_postive_vampire *
 Pr_vampire_postive
 ```
 
-### Sampling from a grid approximate prosterior
+### Sampling from a grid approximate posterior
 
 ```{r}
 p_grid <- seq(from = 0, to = 1, length.out = 1000)
