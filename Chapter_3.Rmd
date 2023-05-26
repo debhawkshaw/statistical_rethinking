@@ -178,6 +178,7 @@ sum(samples > 0.2 & samples < 0.8) / 1e4
 ```{r}
 quantile(samples, 0.2)
 ```
+
 #### 3E5. 20% of the posterior proabiltiy lies above which value of p?
 
 ```{r}
@@ -185,10 +186,13 @@ quantile(samples, 0.8)
 ```
 
 #### 3E6. Which values of p contain the narrowest interval equal to 66% of the posterior probabilty?
+
 ```{r}
 HPDI(samples, prob = 0.66) # HPDI calculates the highest posterior density interval (narrowest interval containing the specified probability mass)
 ```
+
 #### 3E7. Which values contain 66% of the posterior probability, assuming equal posteriro probability both above and below the interval?
+
 ```{r}
 PI(samples, prob = 0.66)
 ### OR ####
@@ -196,6 +200,7 @@ quantile(samples, c(0.17, 0.83))
 ```
 
 #### 3M1. Suppose the globe tossing data had turned out to be 8 water in 15 tosses. Construct the posterior distribution, using grid approximation. Use the same flat prior as before.
+
 ```{r}
 p_grid <- seq(from = 0, to = 1, length.out = 1000)
 prior <- rep(1, 1000)
@@ -205,20 +210,26 @@ posterior <- posterior / sum(posterior)
 
 plot(p_grid, posterior, type = "b", xlab = "probability of water")
 ```
+
 #### 3M2. Draw 10000 samples from the grid approximation above. The use the samples to calculated the 90% HPDI for p.
+
 ```{r}
 samples <- sample(p_grid, prob = posterior, size = 1e4, replace = TRUE)
 HPDI(samples, prob = 0.9)
 # 0.3293293 - 0.7167167
 ```
+
 #### 3M3. Construct a posterior predictive check for this model and data. This means simulate the distribution of samples, averaging over the posterior uncertainty p. What is the probability of observing 8 water in 15 tosses?
+
 ```{r}
 posterior_predictive_dist <- rbinom(1e4, size = 15, prob = samples)
 simplehist(posterior_predictive_dist)
 table(posterior_predictive_dist) / 1e4
 # Probability of 8 waters is 0.1428
 ```
+
 #### 3M4. Using the posterior distribution cosntructed from the new (8/15) data, now calculate the probabilty of observing 6 water in 9 tosses
+
 ```{r}
 posterior_predictive_dist <- rbinom(1e4, size = 9, prob = samples)
 simplehist(posterior_predictive_dist)
@@ -227,6 +238,7 @@ table(posterior_predictive_dist) / 1e4
 ```
 
 #### 3M5. Start over at 3M1, but now use a prior that is zero below p = 0.5 and a constant above p = 0.5. This corresponds to prior information that a majority of the Earth's surface is water. Repeat each problem above and compare the inferences. What differences does the better prior make? If it helps, compare inferences (using both prior to the true value p = 0.7)
+
 ```{r}
 #### Constructing the new posterior ####
 p_grid <- seq(from = 0, to = 1, length.out = 1000)
@@ -259,7 +271,9 @@ table(posterior_predictive_dist) / 1e4
 # The 90% HPDI is much narrower and is closer to the true value p = 0.7
 # The probability of 8 waters in 15 tosses increased as well as the probability of 6 waters in 9 tosses, this makes sense as the proportion of water estiamted from those tosses would be 0.53 and 0.67 which is all above 0.5. 
 ```
+
 #### 3M6. Suppose you want to estimate the Earth's proportion of water very precisely. Specifically, you want the 99% percentile interval of the posterior distribution p to only be 0.05 wide. This means the distance between the upper and loster bound of the interval should be 0.05. How many times will you have to toss the globe to do this?
+
 ```{r}
 ### this is assuming an uninformative prior and a getting waters in proportion to the "true" proportion of water on the earth. Just doing this by trial and error but there is likely a better way.
 ### 10 tosses 
@@ -337,7 +351,7 @@ PI_99[2] - PI_99[1]
 
 ```
 
-### Data for hard problems 
+### Data for hard problems
 
 ```{r}
 birth1 <- c(1,0,0,0,1,1,0,1,0,1,0,0,1,1,0,1,1,0,0,0,1,0,0,0,1,0,0,0,0,1,1,1,0,1,0,1,1,1,0,1,0,1,1,0,1,0,0,1,1,0,1,0,0,0,0,0,0,0,1,1,0,1,0,0,1,0,0,0,1,0,0,1,1,1,1,0,1,0,1,1,1,1,1,0,0,1,0,1,1,0,1,0,1,1,1,0,1,1,1,1)
@@ -349,6 +363,7 @@ sum(birth1) + sum(birth2) # number of boys born
 ```
 
 #### 3H1. Using grid approximation, compute the posterior distribution for the probability of a birth being a boy. Assume a uniform probability. Which parameter value maximizes the posterior probabiltiy?
+
 ```{r}
 p_grid <- seq(from = 0, to = 1, length.out = 1000)
 prior <- rep(1, 1000)
@@ -367,21 +382,27 @@ chainmode(samples)
 mean(samples)
 median(samples)
 ```
-3H2. Using the sample function, draw 10000 random parameter values from the posterior distribution you calculated above. Use the samples to estimate the 50%, 89% and 97% highest posterior density interval. 
+
+3H2. Using the sample function, draw 10000 random parameter values from the posterior distribution you calculated above. Use the samples to estimate the 50%, 89% and 97% highest posterior density interval.
+
 ```{r}
 # already sampled above 
 HPDI(samples, prob = 0.5)
 HPDI(samples, prob = 0.89)
 HPDI(samples, prob = 0.97)
 ```
+
 #### 3H3. Use rbinom to simulate 10000 replicates of 200 births. You should end up with 10000 numbers each one a count of boys out of 200 births. Compare the distribution of the predicted numbers of boys to the actual count in the data (111 boys out of 200 births). There are many good ways to visualize the simulations, but the dens command (rethinking package) is probably the easiest way in this case. Does it look like the models fits the data well? That is does the distribution of the predictions include the actual observation as a central likely outcome?
+
 ```{r}
 posterior_predictive_dist <- rbinom(1e4, size = 200, prob = samples)
 dens(posterior_predictive_dist)
 simplehist(posterior_predictive_dist)
 # Yes it looks like the model fits the data well.
 ```
+
 #### 3H4. Now compare 10000 counts of boys from 100 simulated first borns only to the number of boys in the first births, birth1. How does the model look in this light?
+
 ```{r}
 posterior_predictive_dist <- rbinom(1e4, size = 100, prob = samples)
 sum(birth1)
@@ -390,7 +411,9 @@ simplehist(posterior_predictive_dist)
 
 # doesn't do as good a job. The observation of 51 boys in first set of births in a family is not centeral in the posterior predictive distribution. 
 ```
-3H5. The model assumes that the sex of the first and second births are independent. To check this assumption, focus now on the second set of births that followed female first borns. Compare 10000 simulated counts of boys to only those second births that followed girls. To do this correctly, you need to count the number of first borns who were girls and simulate that many births, 10000 times. Compare the counts of boys in your simulations to the actual observed count of boys following girls. How does the model look in this light? Any guesses what is going on in these data?
+
+#### 3H5. The model assumes that the sex of the first and second births are independent. To check this assumption, focus now on the second set of births that followed female first borns. Compare 10000 simulated counts of boys to only those second births that followed girls. To do this correctly, you need to count the number of first borns who were girls and simulate that many births, 10000 times. Compare the counts of boys in your simulations to the actual observed count of boys following girls. How does the model look in this light? Any guesses what is going on in these data?
+
 ```{r}
 100 - sum(birth1) # 49 first borns were girls
 
@@ -410,4 +433,3 @@ sum(family_birth1_girls$birth2)
 
 # Seemingly the births are not independent, 39/49 families that had girls first had boys second, based on the full data set we would expect the posterior predictive distribution that does 10000 simulations of 49 families to in general have around 26 or so boys not 39. 
 ```
-
